@@ -38,7 +38,15 @@ bool Heuristic::notify_state_transition(
 }
 
 State Heuristic::convert_global_state(const GlobalState &global_state) const {
-    State state(*g_root_task(), global_state.get_values());
+    //State state(*g_root_task(), global_state.get_values());
+    vector<int> values = global_state.get_values();
+    for (const VariableProxy var : task_proxy.get_variables()) {
+        if (var.is_derived()) {
+            // Caelan: resets axiom variables to their default value
+            values[var.get_id()] = var.get_default_axiom_value();
+        }
+    }
+    State state(*g_root_task(), move(values));
     return task_proxy.convert_ancestor_state(state);
 }
 
@@ -96,6 +104,19 @@ EvaluationResult Heuristic::compute_result(EvaluationContext &eval_context) {
         heuristic = EvaluationResult::INFTY;
     }
 
+    TaskProxy global_task_proxy = TaskProxy(*g_root_task());
+    State global_state(*g_root_task(), state.get_values());
+    OperatorsProxy global_operators = global_task_proxy.get_operators();
+    ordered_set::OrderedSet<OperatorID> applicable_preferred;
+    for (OperatorID op_id : preferred_operators) {
+        if (task_properties::is_applicable(global_operators[op_id], global_state)) {
+            // Caelan: prune preferred operators that are not applicable
+            applicable_preferred.insert(op_id);
+        }
+    }
+    result.set_preferred_operators(applicable_preferred.pop_as_vector());
+    preferred_operators.clear();
+
 #ifndef NDEBUG
     TaskProxy global_task_proxy = TaskProxy(*g_root_task());
     State global_state(*g_root_task(), state.get_values());
@@ -107,7 +128,7 @@ EvaluationResult Heuristic::compute_result(EvaluationContext &eval_context) {
 #endif
 
     result.set_h_value(heuristic);
-    result.set_preferred_operators(preferred_operators.pop_as_vector());
+    //result.set_preferred_operators(preferred_operators.pop_as_vector());
     assert(preferred_operators.empty());
 
     return result;

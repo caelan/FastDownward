@@ -51,6 +51,9 @@ def parse_args():
     argparser.add_argument(
         "--dump-task", action="store_true",
         help="dump human-readable SAS+ representation of the task")
+    argparser.add_argument(
+        "--negative-axioms", action="store_true",
+        help="Allow negative axioms by not negating them")
     return argparser.parse_args()
 
 

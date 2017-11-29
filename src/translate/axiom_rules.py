@@ -1,10 +1,14 @@
 import pddl
 import timers
+import options
 
 def handle_axioms(operators, axioms, goals):
     axioms_by_atom = get_axioms_by_atom(axioms)
 
     axiom_literals = compute_necessary_axiom_literals(axioms_by_atom, operators, goals)
+    if options.negative_axioms:
+        # Caelan: pretends all literals are positive
+        axiom_literals = {l.positive() for l in axiom_literals}
     axiom_init = get_axiom_init(axioms_by_atom, axiom_literals)
     with timers.timing("Simplifying axioms"):
         axioms = simplify_axioms(axioms_by_atom, axiom_literals)
