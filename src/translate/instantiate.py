@@ -34,6 +34,7 @@ def instantiate(task, model):
     relaxed_reachable = False
     fluent_facts = get_fluent_facts(task, model)
     init_facts = set(task.init)
+    function_assignments = {fact.fluent: fact.expression for fact in init_facts if isinstance(fact, pddl.f_expression.FunctionAssignment)}
 
     type_to_objects = get_objects_by_type(task.objects, task.types)
 
@@ -55,7 +56,7 @@ def instantiate(task, model):
                                      for par, arg in zip(parameters, atom.args)])
             inst_action = action.instantiate(variable_mapping, init_facts,
                                              fluent_facts, type_to_objects,
-                                             task.use_min_cost_metric)
+                                             task.use_min_cost_metric, function_assignments)
             if inst_action:
                 instantiated_actions.append(inst_action)
         elif isinstance(atom.predicate, pddl.Axiom):

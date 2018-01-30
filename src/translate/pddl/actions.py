@@ -67,7 +67,7 @@ class Action(object):
         return result
 
     def instantiate(self, var_mapping, init_facts, fluent_facts,
-        objects_by_type, metric):
+        objects_by_type, metric, function_assignments):
         """Return a PropositionalAction which corresponds to the instantiation of
         this action with the arguments in var_mapping. Only fluent parts of the
         conditions (those in fluent_facts) are included. init_facts are evaluated
@@ -94,7 +94,7 @@ class Action(object):
                 if self.cost is None:
                     cost = 0
                 else:
-                    cost = int(self.cost.instantiate(var_mapping, init_facts).expression.value)
+                    cost = int(self.cost.instantiate(var_mapping, function_assignments).expression.value)
             else:
                 cost = 1
             return PropositionalAction(name, precondition, effects, cost)

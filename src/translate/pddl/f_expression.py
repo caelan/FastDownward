@@ -44,17 +44,15 @@ class PrimitiveNumericExpression(FunctionalExpression):
         print("%s%s" % (indent, self._dump()))
     def _dump(self):
         return str(self)
-    def instantiate(self, var_mapping, init_facts):
+    def instantiate(self, var_mapping, function_assignments):
         args = [var_mapping.get(arg, arg) for arg in self.args]
         pne = PrimitiveNumericExpression(self.symbol, args)
         assert self.symbol != "total-cost"
         # We know this expression is constant. Substitute it by corresponding
         # initialization from task.
-        for fact in init_facts:
-            if isinstance(fact, FunctionAssignment):
-                if fact.fluent == pne:
-                    return fact.expression
-        assert False, "Could not find instantiation for PNE!"
+        if pne not in function_assignments:
+            assert False, "Could not find instantiation for PNE!"
+        return function_assignments[pne]
 
 class FunctionAssignment(object):
     def __init__(self, fluent, expression):
