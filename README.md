@@ -1,3 +1,7 @@
+# FastDownward
+
+## Information
+
 Fast Downward is a domain-independent planning system.
 
 For documentation and contact information see http://www.fast-downward.org/.
@@ -22,3 +26,22 @@ PARTICULAR PURPOSE. See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program. If not, see <http://www.gnu.org/licenses/>.
 ```
+
+## Installation
+
+Run the following commands:
+```
+$ git clone https://github.com/caelan/FastDownward.git
+$ cd FastDownward
+$ ./build.py
+```
+
+Many development systems already satisfy FastDownward's dependencies. If `./build.py` fails, install FastDownward's dependencies using your package manager:
+* APT (Linux): `$ sudo apt-get install cmake g++ g++-multilib make python`
+* Homebrew (OS X): TBD
+* MacPorts (OS X): TBD
+* N/A (Windows): install each dependency manually
+
+See FastDownward's documentation for more detailed installation instructions:
+
+http://www.fast-downward.org/ObtainingAndRunningFastDownward
