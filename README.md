@@ -42,6 +42,6 @@ Many development systems already satisfy FastDownward's dependencies. If `./buil
 * MacPorts (OS X): TBD
 * N/A (Windows): install each dependency manually
 
-See FastDownward's documentation for more detailed installation instructions:
+If necessary, see FastDownward's documentation for more detailed installation instructions:
 
 http://www.fast-downward.org/ObtainingAndRunningFastDownward
