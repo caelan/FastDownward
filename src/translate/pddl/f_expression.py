@@ -51,7 +51,7 @@ class PrimitiveNumericExpression(FunctionalExpression):
         # We know this expression is constant. Substitute it by corresponding
         # initialization from task.
         if pne not in function_assignments:
-            assert False, "Could not find instantiation for PNE!"
+            assert False, "Could not find instantiation for numeric expression: {}".format(self.symbol)
         return function_assignments[pne]
 
 class FunctionAssignment(object):
