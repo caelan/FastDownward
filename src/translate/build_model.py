@@ -303,7 +303,8 @@ def compute_model(prog):
         rules = convert_rules(prog)
         unifier = Unifier(rules)
         # unifier.dump()
-        fact_atoms = sorted(fact.atom for fact in prog.facts)
+        #fact_atoms = sorted(fact.atom for fact in prog.facts)
+        fact_atoms = [fact.atom for fact in prog.facts]
         queue = Queue(fact_atoms)
 
     print("Generated %d rules." % len(rules))

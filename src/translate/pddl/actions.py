@@ -97,13 +97,13 @@ class Action(object):
                     cost = int(self.cost.instantiate(var_mapping, function_assignments).expression.value)
             else:
                 cost = 1
-            return PropositionalAction(name, precondition, effects, cost)
+            return PropositionalAction(name, precondition, effects, cost, self, var_mapping)
         else:
             return None
 
 
 class PropositionalAction:
-    def __init__(self, name, precondition, effects, cost):
+    def __init__(self, name, precondition, effects, cost, action=None, var_mapping=None):
         self.name = name
         self.precondition = precondition
         self.add_effects = []
@@ -119,6 +119,8 @@ class PropositionalAction:
             if effect.negated and (condition, effect.negate()) not in self.add_effects:
                 self.del_effects.append((condition, effect.negate()))
         self.cost = cost
+        self.action = action
+        self.var_mapping = var_mapping
 
     def __repr__(self):
         return "<PropositionalAction %r at %#x>" % (self.name, id(self))
