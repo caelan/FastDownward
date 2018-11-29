@@ -2,12 +2,12 @@
 
 #include "evaluation_context.h"
 #include "evaluation_result.h"
-#include "globals.h"
 #include "option_parser.h"
 #include "plugin.h"
 
 #include "task_utils/task_properties.h"
 #include "tasks/cost_adapted_task.h"
+#include "tasks/root_task.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -16,9 +16,9 @@
 using namespace std;
 
 Heuristic::Heuristic(const Options &opts)
-    : description(opts.get_unparsed_config()),
+    : Evaluator(opts.get_unparsed_config(), true, true, true),
       heuristic_cache(HEntry(NO_VALUE, true)), //TODO: is true really a good idea here?
-      cache_h_values(opts.get<bool>("cache_estimates")),
+      cache_evaluator_values(opts.get<bool>("cache_estimates")),
       task(opts.get<shared_ptr<AbstractTask>>("transform")),
       task_proxy(*task) {
 }
@@ -27,26 +27,20 @@ Heuristic::~Heuristic() {
 }
 
 void Heuristic::set_preferred(const OperatorProxy &op) {
-    preferred_operators.insert(op.get_global_operator_id());
-}
-
-bool Heuristic::notify_state_transition(
-    const GlobalState & /*parent_state*/,
-    OperatorID /*op_id*/,
-    const GlobalState & /*state*/) {
-    return false;
+    preferred_operators.insert(op.get_ancestor_operator_id(tasks::g_root_task.get()));
 }
 
 State Heuristic::convert_global_state(const GlobalState &global_state) const {
-    //State state(*g_root_task(), global_state.get_values());
-    vector<int> values = global_state.get_values();
+    //return task_proxy.convert_ancestor_state(global_state.unpack());
+    State unpacked_state = global_state.unpack();
+    vector<int> values = unpacked_state.get_values();
     for (const VariableProxy var : task_proxy.get_variables()) {
         if (var.is_derived()) {
             // Caelan: resets axiom variables to their default value
             values[var.get_id()] = var.get_default_axiom_value();
         }
     }
-    State state(*g_root_task(), move(values));
+    State state(*tasks::g_root_task, move(values));
     return task_proxy.convert_ancestor_state(state);
 }
 
@@ -59,15 +53,6 @@ void Heuristic::add_options_to_parser(OptionParser &parser) {
     parser.add_option<bool>("cache_estimates", "cache heuristic estimates", "true");
 }
 
-// This solution to get default values seems nonoptimal.
-// This is currently only used by the LAMA/FF synergy.
-Options Heuristic::default_options() {
-    Options opts = Options();
-    opts.set<shared_ptr<AbstractTask>>("transform", g_root_task());
-    opts.set<bool>("cache_estimates", false);
-    return opts;
-}
-
 EvaluationResult Heuristic::compute_result(EvaluationContext &eval_context) {
     EvaluationResult result;
 
@@ -78,13 +63,13 @@ EvaluationResult Heuristic::compute_result(EvaluationContext &eval_context) {
 
     int heuristic = NO_VALUE;
 
-    if (!calculate_preferred && cache_h_values &&
+    if (!calculate_preferred && cache_evaluator_values &&
         heuristic_cache[state].h != NO_VALUE && !heuristic_cache[state].dirty) {
         heuristic = heuristic_cache[state].h;
         result.set_count_evaluation(false);
     } else {
         heuristic = compute_heuristic(state);
-        if (cache_h_values) {
+        if (cache_evaluator_values) {
             heuristic_cache[state] = HEntry(heuristic, false);
         }
         result.set_count_evaluation(true);
@@ -104,12 +89,12 @@ EvaluationResult Heuristic::compute_result(EvaluationContext &eval_context) {
         heuristic = EvaluationResult::INFTY;
     }
 
-    TaskProxy global_task_proxy = TaskProxy(*g_root_task());
-    State global_state(*g_root_task(), state.get_values());
+    TaskProxy global_task_proxy = TaskProxy(*tasks::g_root_task);
+    State unpacked_state = state.unpack();
     OperatorsProxy global_operators = global_task_proxy.get_operators();
     ordered_set::OrderedSet<OperatorID> applicable_preferred;
     for (OperatorID op_id : preferred_operators) {
-        if (task_properties::is_applicable(global_operators[op_id], global_state)) {
+        if (task_properties::is_applicable(global_operators[op_id], unpacked_state)) {
             // Caelan: prune preferred operators that are not applicable
             applicable_preferred.insert(op_id);
         }
@@ -118,38 +103,31 @@ EvaluationResult Heuristic::compute_result(EvaluationContext &eval_context) {
     preferred_operators.clear();
 
 #ifndef NDEBUG
-    TaskProxy global_task_proxy = TaskProxy(*g_root_task());
-    State global_state(*g_root_task(), state.get_values());
+    TaskProxy global_task_proxy = TaskProxy(*tasks::g_root_task);
+    State unpacked_state = state.unpack();
     OperatorsProxy global_operators = global_task_proxy.get_operators();
     if (heuristic != EvaluationResult::INFTY) {
         for (OperatorID op_id : preferred_operators)
-            assert(task_properties::is_applicable(global_operators[op_id], global_state));
+            assert(task_properties::is_applicable(global_operators[op_id], unpacked_state));
     }
 #endif
 
-    result.set_h_value(heuristic);
+    result.set_evaluator_value(heuristic);
     //result.set_preferred_operators(preferred_operators.pop_as_vector());
     assert(preferred_operators.empty());
 
     return result;
 }
 
-string Heuristic::get_description() const {
-    return description;
+bool Heuristic::does_cache_estimates() const {
+    return cache_evaluator_values;
 }
 
+bool Heuristic::is_estimate_cached(const GlobalState &state) const {
+    return heuristic_cache[state].h != NO_VALUE;
+}
 
-static PluginTypePlugin<Heuristic> _type_plugin(
-    "Heuristic",
-    "A heuristic specification is either a newly created heuristic "
-    "instance or a heuristic that has been defined previously. "
-    "This page describes how one can specify a new heuristic instance. "
-    "For re-using heuristics, see OptionSyntax#Heuristic_Predefinitions.\n\n"
-    "Definitions of //properties// in the descriptions below:\n\n"
-    " * **admissible:** h(s) <= h*(s) for all states s\n"
-    " * **consistent:** h(s) <= c(s, s') + h(s') for all states s "
-    "connected to states s' by an action with cost c(s, s')\n"
-    " * **safe:** h(s) = infinity is only true for states "
-    "with h*(s) = infinity\n"
-    " * **preferred operators:** this heuristic identifies "
-    "preferred operators ");
+int Heuristic::get_cached_estimate(const GlobalState &state) const {
+    assert(is_estimate_cached(state));
+    return heuristic_cache[state].h;
+}
