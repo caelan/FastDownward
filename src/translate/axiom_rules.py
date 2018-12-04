@@ -169,7 +169,7 @@ def compute_negative_axioms(axioms_by_atom, necessary_literals):
 
 def negate(axioms):
     assert axioms
-    result = [pddl.PropositionalAxiom(axioms[0].name, [], axioms[0].effect.negate())]
+    result = [pddl.PropositionalAxiom(axioms[0].name, [], axioms[0].effect.negate(), axioms[0].axiom, axioms[0].var_mapping)]
     for axiom in axioms:
         condition = axiom.condition
         if len(condition) == 0:
