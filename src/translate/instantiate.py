@@ -31,10 +31,10 @@ def get_objects_by_type(typed_objects, types):
     return result
 
 def get_atoms_by_predicate(atoms):
-    result = defaultdict(list)
+    result = {}
     for atom in atoms:
         if isinstance(atom, pddl.Atom):
-            result[atom.predicate].append(atom)
+            result.setdefault(atom.predicate, []).append(atom)
     return result
 
 def instantiate(task, model):

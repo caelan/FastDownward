@@ -58,7 +58,8 @@ class Effect(object):
             else:
                 raise NotImplementedError(self.condition)
             for fact in facts:
-                if {p.name for p in self.parameters} <= set(fact.args):
+                if ({p.name for p in self.parameters} <= set(fact.args)) and \
+                        (fact.predicate in predicate_to_atoms):
                     # caelan: special case where consider the dual
                     for atom in predicate_to_atoms[fact.predicate]:
                         mapping = dict(zip(fact.args, atom.args))
