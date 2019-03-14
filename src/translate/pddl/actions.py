@@ -53,7 +53,7 @@ class Action(object):
                 new_effects.append(relaxed_eff)
         return Action(self.name, self.parameters, self.num_external_parameters,
                       self.precondition.relaxed().simplified(),
-                      new_effects)
+                      new_effects, self.cost)
 
     def untyped(self):
         # We do not actually remove the types from the parameter lists,
@@ -108,9 +108,7 @@ class PropositionalAction:
         self.precondition = precondition
         self.add_effects = []
         self.del_effects = []
-        self.effect_mappings = []
-        for _, _, effect, effect_mapping in effects:
-            self.effect_mappings.append((effect, effect_mapping))
+        self.effect_mappings = effects
         for condition, effect, _, _ in effects:
             if not effect.negated:
                 self.add_effects.append((condition, effect))
