@@ -53,7 +53,7 @@ class Action(object):
                 new_effects.append(relaxed_eff)
         return Action(self.name, self.parameters, self.num_external_parameters,
                       self.precondition.relaxed().simplified(),
-                      new_effects)
+                      new_effects, self.cost)
 
     def untyped(self):
         # We do not actually remove the types from the parameter lists,
@@ -67,11 +67,11 @@ class Action(object):
         return result
 
     def instantiate(self, var_mapping, init_facts, fluent_facts,
-        objects_by_type, metric, function_assignments):
+        objects_by_type, metric, function_assignments, predicate_to_atoms):
         """Return a PropositionalAction which corresponds to the instantiation of
         this action with the arguments in var_mapping. Only fluent parts of the
         conditions (those in fluent_facts) are included. init_facts are evaluated
-        whilte instantiating.
+        while instantiating.
         Precondition and effect conditions must be normalized for this to work.
         Returns None if var_mapping does not correspond to a valid instantiation
         (because it has impossible preconditions or an empty effect list.)"""
@@ -88,7 +88,7 @@ class Action(object):
         effects = []
         for eff in self.effects:
             eff.instantiate(var_mapping, init_facts, fluent_facts,
-                            objects_by_type, effects)
+                            objects_by_type, predicate_to_atoms, effects)
         if effects:
             if metric:
                 if self.cost is None:
@@ -108,14 +108,15 @@ class PropositionalAction:
         self.precondition = precondition
         self.add_effects = []
         self.del_effects = []
-        for condition, effect in effects:
+        self.effect_mappings = effects
+        for condition, effect, _, _ in effects:
             if not effect.negated:
                 self.add_effects.append((condition, effect))
         # Warning: This is O(N^2), could be turned into O(N).
         # But that might actually harm performance, since there are
         # usually few effects.
         # TODO: Measure this in critical domains, then use sets if acceptable.
-        for condition, effect in effects:
+        for condition, effect, _, _ in effects:
             if effect.negated and (condition, effect.negate()) not in self.add_effects:
                 self.del_effects.append((condition, effect.negate()))
         self.cost = cost

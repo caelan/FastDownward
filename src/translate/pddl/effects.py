@@ -43,15 +43,35 @@ class Effect(object):
         self.condition = self.condition.uniquify_variables(type_map, renamings)
         self.literal = self.literal.rename_variables(renamings)
     def instantiate(self, var_mapping, init_facts, fluent_facts,
-                    objects_by_type, result):
+                    objects_by_type, predicate_to_atoms, result):
         if self.parameters:
             var_mapping = var_mapping.copy() # Will modify this.
             object_lists = [objects_by_type.get(par.type_name, [])
                             for par in self.parameters]
-            for object_tuple in cartesian_product(*object_lists):
-                for (par, obj) in zip(self.parameters, object_tuple):
-                    var_mapping[par.name] = obj
-                self._instantiate(var_mapping, init_facts, fluent_facts, result)
+
+            if isinstance(self.condition, conditions.Truth):
+                facts = []
+            elif isinstance(self.condition, conditions.Atom):
+                facts = [self.condition]
+            elif isinstance(self.condition, conditions.Condition):
+                facts = self.condition.parts
+            else:
+                raise NotImplementedError(self.condition)
+            for fact in facts:
+                if ({p.name for p in self.parameters} <= set(fact.args)) and \
+                        (fact.predicate in predicate_to_atoms):
+                    # caelan: special case where consider the dual
+                    for atom in predicate_to_atoms[fact.predicate]:
+                        mapping = dict(zip(fact.args, atom.args))
+                        for par in self.parameters:
+                            var_mapping[par.name] = mapping[par.name]
+                        self._instantiate(var_mapping, init_facts, fluent_facts, result)
+                    break
+            else:
+                for object_tuple in cartesian_product(*object_lists):
+                    for (par, obj) in zip(self.parameters, object_tuple):
+                        var_mapping[par.name] = obj
+                    self._instantiate(var_mapping, init_facts, fluent_facts, result)
         else:
             self._instantiate(var_mapping, init_facts, fluent_facts, result)
     def _instantiate(self, var_mapping, init_facts, fluent_facts, result):
@@ -64,7 +84,7 @@ class Effect(object):
         self.literal.instantiate(var_mapping, init_facts, fluent_facts, effects)
         assert len(effects) <= 1
         if effects:
-            result.append((condition, effects[0]))
+            result.append((condition, effects[0], self, var_mapping.copy()))
     def relaxed(self):
         if self.literal.negated:
             return None

@@ -40,17 +40,19 @@ class Axiom(object):
         effect_args = [var_mapping.get(arg.name, arg.name)
                        for arg in self.parameters[:self.num_external_parameters]]
         effect = conditions.Atom(self.name, effect_args)
-        return PropositionalAxiom(name, condition, effect)
+        return PropositionalAxiom(name, condition, effect, self, var_mapping)
 
 
 class PropositionalAxiom:
-    def __init__(self, name, condition, effect):
+    def __init__(self, name, condition, effect, axiom=None, var_mapping=None):
         self.name = name
         self.condition = condition
         self.effect = effect
+        self.axiom = axiom
+        self.var_mapping = var_mapping
 
     def clone(self):
-        return PropositionalAxiom(self.name, list(self.condition), self.effect)
+        return PropositionalAxiom(self.name, list(self.condition), self.effect, self.axiom, self.var_mapping)
 
     def dump(self):
         if self.effect.negated:
