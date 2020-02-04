@@ -102,15 +102,15 @@ EvaluationResult Heuristic::compute_result(EvaluationContext &eval_context) {
     result.set_preferred_operators(applicable_preferred.pop_as_vector());
     preferred_operators.clear();
 
-#ifndef NDEBUG
-    TaskProxy global_task_proxy = TaskProxy(*tasks::g_root_task);
-    State unpacked_state = state.unpack();
-    OperatorsProxy global_operators = global_task_proxy.get_operators();
-    if (heuristic != EvaluationResult::INFTY) {
-        for (OperatorID op_id : preferred_operators)
-            assert(task_properties::is_applicable(global_operators[op_id], unpacked_state));
-    }
-#endif
+// #ifndef NDEBUG
+//     TaskProxy global_task_proxy = TaskProxy(*tasks::g_root_task);
+//     State unpacked_state = state.unpack();
+//     OperatorsProxy global_operators = global_task_proxy.get_operators();
+//     if (heuristic != EvaluationResult::INFTY) {
+//         for (OperatorID op_id : preferred_operators)
+//             assert(task_properties::is_applicable(global_operators[op_id], unpacked_state));
+//     }
+// #endif
 
     result.set_evaluator_value(heuristic);
     //result.set_preferred_operators(preferred_operators.pop_as_vector());
