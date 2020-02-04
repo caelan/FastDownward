@@ -103,12 +103,12 @@ EvaluationResult Heuristic::compute_result(EvaluationContext &eval_context) {
     preferred_operators.clear();
 
 // #ifndef NDEBUG
-//     TaskProxy global_task_proxy = TaskProxy(*g_root_task());
-//     State global_state(*g_root_task(), state.get_values());
+//     TaskProxy global_task_proxy = TaskProxy(*tasks::g_root_task);
+//     State unpacked_state = state.unpack();
 //     OperatorsProxy global_operators = global_task_proxy.get_operators();
 //     if (heuristic != EvaluationResult::INFTY) {
 //         for (OperatorID op_id : preferred_operators)
-//             assert(task_properties::is_applicable(global_operators[op_id], global_state));
+//             assert(task_properties::is_applicable(global_operators[op_id], unpacked_state));
 //     }
 // #endif
 
