@@ -395,6 +395,8 @@ def translate_strips_operators(actions, strips_to_sas, ranges, mutex_dict,
         sas_ops = translate_strips_operator(action, strips_to_sas, ranges,
                                             mutex_dict, mutex_ranges,
                                             implied_facts)
+        for sas_op in sas_ops:
+            sas_op.propositional_action = action
         result.extend(sas_ops)
     return result
 
@@ -405,6 +407,8 @@ def translate_strips_axioms(axioms, strips_to_sas, ranges, mutex_dict,
     for axiom in axioms:
         sas_axioms = translate_strips_axiom(axiom, strips_to_sas, ranges,
                                             mutex_dict, mutex_ranges)
+        for sas_axiom in sas_axioms:
+            sas_axiom.propositional_action = axiom
         result.extend(sas_axioms)
     return result
 
