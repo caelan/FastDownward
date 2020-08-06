@@ -1,5 +1,7 @@
 # FastDownward
 
+A slightly modified version of Fast Downward.
+
 ## Information
 
 Fast Downward is a domain-independent planning system.
@@ -45,3 +47,9 @@ Many development systems already satisfy FastDownward's dependencies. If `./buil
 If necessary, see FastDownward's documentation for more detailed installation instructions:
 
 http://www.fast-downward.org/ObtainingAndRunningFastDownward
+
+## Citation
+
+Malte Helmert.
+The Fast Downward Planning System.
+Journal of Artificial Intelligence Research 26, pp. 191-246. 2006. 
