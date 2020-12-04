@@ -253,11 +253,12 @@ class SASGoal:
 
 
 class SASOperator:
-    def __init__(self, name, prevail, pre_post, cost):
+    def __init__(self, name, prevail, pre_post, cost, propositional_action=None):
         self.name = name
         self.prevail = sorted(prevail)
         self.pre_post = self._canonical_pre_post(pre_post)
         self.cost = cost
+        self.propositional_action = propositional_action
 
     def _canonical_pre_post(self, pre_post):
         # Return a sorted and uniquified version of pre_post. We would
@@ -400,9 +401,10 @@ class SASOperator:
 
 
 class SASAxiom:
-    def __init__(self, condition, effect):
+    def __init__(self, condition, effect, propositional_axiom=None):
         self.condition = sorted(condition)
         self.effect = effect
+        self.propositional_axiom = propositional_axiom
         assert self.effect[1] in (0, 1)
 
         for _, val in condition:
