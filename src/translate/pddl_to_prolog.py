@@ -173,7 +173,8 @@ def translate(task):
                 covered_args = set()
                 reduced_conditions = []
                 for condition in conditions:
-                    if not (set(condition.args) <= covered_args):
+                    # isinstance(condition.predicate, pddl.Action) or isinstance(condition.predicate, pddl.Axiom)
+                    if not reduced_conditions or not (set(condition.args) <= covered_args):
                         covered_args.update(condition.args)
                         reduced_conditions.append(condition)
                 conditions = reduced_conditions
