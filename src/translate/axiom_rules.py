@@ -9,7 +9,7 @@ def handle_axioms(operators, axioms, goals):
 
     axiom_literals = compute_necessary_axiom_literals(axioms_by_atom, operators, goals)
     if options.negative_axioms:
-        # Caelan: pretends all literals are positive
+        # caelan: pretends all literals are positive
         #axiom_literals = {l.positive() for l in axiom_literals}
         axiom_literals = {l.positive() if l.predicate.endswith(NEGATIVE_SUFFIX) else l for l in axiom_literals}
     axiom_init = get_axiom_init(axioms_by_atom, axiom_literals)
