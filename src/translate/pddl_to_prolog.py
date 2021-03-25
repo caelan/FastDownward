@@ -168,6 +168,7 @@ def translate(task):
         fluents = get_fluents(task) # TODO: identify implied conditions and filter automatically
         for conditions, effect in normalize.build_exploration_rules(task):
             if REDUCE_CONDITIONS:
+                # TODO: could possibly remove rules with effects that don't achieve conditions
                 #conditions = [condition for condition in conditions if condition.predicate not in fluents]
                 conditions = sorted(conditions, key=lambda c: (len(c.args), c.predicate not in fluents), reverse=True)
                 covered_args = set()
