@@ -165,19 +165,24 @@ def translate(task):
     with timers.timing("Generating Datalog program"):
         prog = PrologProgram()
         translate_facts(prog, task)
+        types = {ty.get_predicate_name() for ty in task.types}
         fluents = get_fluents(task) # TODO: identify implied conditions and filter automatically
         for conditions, effect in normalize.build_exploration_rules(task):
             if REDUCE_CONDITIONS:
                 # TODO: could possibly remove rules with effects that don't achieve conditions
-                #conditions = [condition for condition in conditions if condition.predicate not in fluents]
-                conditions = sorted(conditions, key=lambda c: (len(c.args), c.predicate not in fluents), reverse=True)
+                # TODO: sort by the number of atoms per predicate?
+                conditions = sorted(conditions, key=lambda c: (c.predicate not in types,
+                                                               c.predicate not in fluents, len(c.args)), reverse=True)
                 covered_args = set()
                 reduced_conditions = []
                 for condition in conditions:
                     # isinstance(condition.predicate, pddl.Action) or isinstance(condition.predicate, pddl.Axiom)
-                    if not reduced_conditions or not (set(condition.args) <= covered_args):
+                    #if not reduced_conditions or not (set(condition.args) <= covered_args): # Filter all
+                    if not reduced_conditions or (condition.predicate not in types) \
+                            or not (set(condition.args) <= covered_args): # Filter types
                         covered_args.update(condition.args)
-                        reduced_conditions.append(condition)
+                        reduced_conditions.append(condition) # TODO: handle constants in args?
+                #print(conditions, reduced_conditions, effect)
                 conditions = reduced_conditions
             prog.add_rule(Rule(conditions, effect))
     with timers.timing("Normalizing Datalog program", block=True):

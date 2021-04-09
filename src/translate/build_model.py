@@ -326,6 +326,8 @@ def compute_model(prog):
     print("%d auxiliary atoms" % auxiliary_atoms)
     print("%d final queue length" % len(queue.queue))
     print("%d total queue pushes" % queue.num_pushes)
+    #from collections import Counter
+    #print('Atoms:', Counter(atom.predicate for atom in queue.queue))
     return queue.queue
 
 if __name__ == "__main__":
